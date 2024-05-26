@@ -1,0 +1,21 @@
+    - name: restart supervisord corosync
+      shell: |
+        supervisorctl restart corosync
+      listen: "restart supervisord corosync"
+
+    - name: start nginx
+      service:
+        name: nginx
+        state: start
+        enables: yes
+    
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      listen: "restart nginx"
+
+    - name: restart supervisord
+      shell: |
+        supervisorctl reread && supervisorctl update all && supervisorctl reload
+      listen: "restart supervisord"

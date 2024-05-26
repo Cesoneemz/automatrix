@@ -1,17 +1,15 @@
 FROM debian:latest
 
-RUN apt-get update && apt-get install -y nginx pcs pacemaker corosync openssh-server supervisor
+RUN apt-get update && apt-get install -y openssh-server python3-pip supervisor
 RUN mkdir -p /var/run/sshd /var/log/supervisor
 COPY nginx.conf /etc/nginx/nginx.conf
-
-# Добавление публичного ключа в authorized_keys
 
 # Конфигурация supervisord
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 COPY ssh/* /root/.ssh/
-RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/id_rsa
 
-RUN service ssh start
+RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 CMD ["/usr/bin/supervisord"]

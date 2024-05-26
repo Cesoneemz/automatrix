@@ -1,4 +1,5 @@
+#  - import_playbook: playbook_components_setup.yml
+  - import_playbook: playbook_clusters_setup.yml
   - import_playbook: playbook_user_setup.yml
   - import_playbook: playbook_corosync_generate_key.yml
-  - import_playbook: playbook_nginx_setup.yml
-  - import_playbook: playbook_clusters_setup.yml
+  - import_playbook: playbook_clusters_auth.yml

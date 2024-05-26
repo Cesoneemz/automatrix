@@ -6,6 +6,8 @@ RUN echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf
 RUN ln -s /etc/apache2/conf-available/servername.conf /etc/apache2/conf-enabled/servername.conf
 
 COPY ssh/* /root/.ssh/
+RUN chmod 600 /root/.ssh/id_rsa
+
 RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 RUN service ssh start

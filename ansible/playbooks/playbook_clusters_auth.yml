@@ -1,0 +1,65 @@
+  - name: Auth
+    hosts: localhost
+    become: true
+    remote_user: root
+    tasks:
+
+      # - name: Прислать пидору 1 настройки
+      #   copy:
+      #     src: /etc/corosync/corosync.conf
+      #     dest: /etc/corosync/corosync.conf
+      #     owner: hacluster
+      #     mode: '0640'
+      #   delegate_to: lb1
+
+      # - name: Прислать пидору 2 настройки
+      #   copy:
+      #     src: /etc/corosync/corosync.conf
+      #     dest: /etc/corosync/corosync.conf
+      #     owner: hacluster
+      #     mode: '0640'
+      #   delegate_to: lb2
+      
+      # - name: Authenticate hacluster user on all nodes
+      #   shell: pcs host auth lb1 lb2 -u hacluster -p 123
+      #   ignore_errors: true
+      #   delegate_to: lb1
+
+      # - name: Authenticate hacluster user on all nodes
+      #   shell: pcs host auth lb1 lb2 -u hacluster -p 123
+      #   ignore_errors: true
+      #   delegate_to: lb2
+
+      - name: Authenticate hacluster user on all nodes
+        shell: pcs host auth 127.0.0.1 lb1 lb2 -u hacluster -p 123
+        register: auth_result
+      - debug:
+          var: auth_result
+        ignore_errors: true
+
+      - name: Setup cluster on localhost
+        shell: pcs cluster setup cluster_lb 127.0.0.1 lb1 lb2 --force
+        register: cluster_setup
+      - debug:
+          var: cluster_setup
+
+      - name: Check known-hosts file on lb1
+        ansible.builtin.stat:
+          path: /var/lib/pcsd/known-hosts
+        delegate_to: lb1
+        register: known_hosts_lb1
+
+      - name: Check known-hosts file on lb2
+        ansible.builtin.stat:
+          path: /var/lib/pcsd/known-hosts
+        register: known_hosts_lb2
+        delegate_to: lb2
+
+      - name: Start cluster on all nodes
+        shell: pcs cluster start --all
+        register: cluster_start
+      - debug:
+          var: cluster_start
+
+    handlers:
+      - import_tasks: handlers/main.yml

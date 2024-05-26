@@ -1,17 +1,45 @@
 FROM debian:latest
-RUN apt-get update && apt-get install -y ansible pacemaker pcs corosync openssh-server sudo sshpass nginx apache2 python3-pip python3-passlib
+RUN apt-get update && apt-get install -y \
+    ansible \
+    pacemaker \
+    corosync \
+    pcs \
+    ruby \
+    ruby-dev \
+    build-essential \
+#    supervisor \
+    ssh \
+    nginx \
+    python3-pip \ 
+    && gem install daemons \
+    && apt-get clean
+    
+#RUN wget https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tgz
+
+#RUN tar xvf Python-3.12.3.tgz
+#WORKDIR /Python-3.12.3/
+#RUN ./configure --enable-optimization
+#RUN make install
+#WORKDIR /
+
+RUN pip install supervisor --break-system-packages
+
 COPY ./playbooks /ansible/playbooks
 
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
 RUN mkdir /var/run/sshd  # Создание необходимой директории
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin without-password/' /etc/ssh/sshd_config
-
-# Отключение строгих проверок ключей для упрощения подключений к серверу
-RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
 COPY ssh/* /root/.ssh/
+RUN chmod 600 /root/.ssh/id_rsa
+
+COPY config/nginx.conf /etc/nginx/nginx.conf
+COPY config/corosync.conf /corosync.conf
+
+COPY supervisord.conf /etc/supervisor/supervisord.conf
+
+RUN /usr/bin/supervisord -c /etc/supervisor/supervisord.conf &
 
 CMD ["/entrypoint.sh"]
 # CMD ["ansible-playbook", "/ansible/playbooks/playbook_main.yml"]

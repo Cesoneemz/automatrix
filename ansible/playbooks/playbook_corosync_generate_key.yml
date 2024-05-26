@@ -34,3 +34,6 @@
       with_items:
         - lb1
         - lb2
+      
+    handlers:
+      - import_tasks: handlers/main.yml
